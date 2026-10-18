@@ -274,6 +274,34 @@ class SoundEngine {
     } catch {}
   }
 
+  public playAchievement() {
+    if (!this.sfxEnabled) return;
+    this.init();
+    if (!this.ctx) return;
+    this.triggerHaptic(120);
+
+    try {
+      const chord = [659.25, 830.61, 987.77, 1318.51, 1661.22];
+      const now = this.ctx.currentTime;
+
+      chord.forEach((freq, i) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        const start = now + i * 0.07;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.28 * this.sfxVolume, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.6);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(start);
+        osc.stop(start + 0.65);
+      });
+    } catch {}
+  }
+
   public playTick() {
     if (!this.sfxEnabled) return;
     this.init();

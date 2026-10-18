@@ -93,6 +93,14 @@ export const App: React.FC = () => {
     saveLanguage(language);
   }, [language]);
 
+  // Check retroactive achievements on mount
+  useEffect(() => {
+    const newly = SaveSys.checkAndUnlockAchievements();
+    if (newly && newly.length > 0) {
+      setSaveData(SaveSys.load());
+    }
+  }, []);
+
   // Load a level by ID
   const loadLevel = useCallback((lvlId: number) => {
     const def = LEVELS.find(l => l.id === lvlId) || LEVELS[0];
@@ -212,12 +220,27 @@ export const App: React.FC = () => {
       );
 
       // Save progression
-      SaveSys.recordLevelComplete(currentLevel.id, stars, finalTime, finalMoves, score);
+      const newlyUnlocked = SaveSys.recordLevelComplete(
+        currentLevel.id,
+        stars,
+        finalTime,
+        finalMoves,
+        score,
+        undefined,
+        { hintsUsed: puzzleState.unlockedHints, isTimeAttack }
+      );
       let rankAchieved: number | null = null;
       if (isTimeAttack) {
         rankAchieved = SaveSys.recordTimeAttackScore(currentLevel.id, score, finalTime, t('player_you'));
       }
       setSaveData(SaveSys.load());
+
+      if (newlyUnlocked && newlyUnlocked.length > 0) {
+        AudioSys.playAchievement();
+        newlyUnlocked.forEach(ach => {
+          showToast(`🏆 ${ach.title[language] || ach.title.en}`, 'success');
+        });
+      }
 
       setVictoryStats({
         stars,
@@ -233,7 +256,7 @@ export const App: React.FC = () => {
       AudioSys.playDoorOpen();
       setIsDoorOpening(true);
     },
-    [currentLevel, isTimeAttack, showToast, t]
+    [currentLevel, isTimeAttack, puzzleState.unlockedHints, showToast, t, language]
   );
 
   // Evaluates whether current state solves the level
@@ -272,6 +295,15 @@ export const App: React.FC = () => {
     if (puzzleState.solved) return;
     AudioSys.playRotate();
 
+    const newlyUnlocked = SaveSys.recordMove();
+    if (newlyUnlocked && newlyUnlocked.length > 0) {
+      AudioSys.playAchievement();
+      newlyUnlocked.forEach(ach => {
+        showToast(`🏆 ${ach.title[language] || ach.title.en}`, 'success');
+      });
+      setSaveData(SaveSys.load());
+    }
+
     setPuzzleState(prev => {
       const currentAngle = prev.angles[ringId] || 0;
       const nextAngle = (currentAngle + 90) % 360;
@@ -291,6 +323,15 @@ export const App: React.FC = () => {
   const handleToggleNode = (index: number) => {
     if (puzzleState.solved) return;
     AudioSys.playToggle();
+
+    const newlyUnlocked = SaveSys.recordMove();
+    if (newlyUnlocked && newlyUnlocked.length > 0) {
+      AudioSys.playAchievement();
+      newlyUnlocked.forEach(ach => {
+        showToast(`🏆 ${ach.title[language] || ach.title.en}`, 'success');
+      });
+      setSaveData(SaveSys.load());
+    }
 
     setPuzzleState(prev => {
       const def = currentLevel;
@@ -314,6 +355,15 @@ export const App: React.FC = () => {
   // Action: Select Multiple Choice Option
   const handleSelectOption = (option: string) => {
     if (puzzleState.solved) return;
+
+    const newlyUnlocked = SaveSys.recordMove();
+    if (newlyUnlocked && newlyUnlocked.length > 0) {
+      AudioSys.playAchievement();
+      newlyUnlocked.forEach(ach => {
+        showToast(`🏆 ${ach.title[language] || ach.title.en}`, 'success');
+      });
+      setSaveData(SaveSys.load());
+    }
 
     setPuzzleState(prev => {
       const nextMoves = prev.moves + 1;
@@ -489,10 +539,11 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Intelligence Analytics Modal (Recharts) */}
+      {/* Intelligence Analytics & Achievements Modal */}
       {activeModal === 'analytics' && (
         <AnalyticsModal
           data={SaveSys.getRecentIntelligenceData()}
+          saveData={saveData}
           language={language}
           onClose={() => {
             AudioSys.playClick();

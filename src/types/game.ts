@@ -98,6 +98,28 @@ export interface LeaderboardEntry {
   isPlayer?: boolean;
 }
 
+export interface UnlockedAchievementRecord {
+  unlockedAt: number;
+}
+
+export interface AchievementProgress {
+  current: number;
+  target: number;
+  percentage: number;
+  isUnlocked: boolean;
+  formattedProgress: string;
+}
+
+export interface AchievementDefinition {
+  id: string;
+  icon: string;
+  category: 'speed' | 'moves' | 'stars' | 'mastery';
+  title: LocalizedString;
+  description: LocalizedString;
+  target: number;
+  unit: LocalizedString;
+}
+
 export interface SaveData {
   version: number;
   highestUnlocked: number;
@@ -109,6 +131,8 @@ export interface SaveData {
   leaderboard: LeaderboardEntry[];
   totalStars: number;
   totalScore: number;
+  totalMoves: number;
+  unlockedAchievements: Record<string, UnlockedAchievementRecord>;
   timestamp: number;
 }
 

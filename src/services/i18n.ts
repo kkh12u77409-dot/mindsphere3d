@@ -40,6 +40,26 @@ export const I18N: Record<SupportedLanguage, Record<string, string>> = {
     base_score: "Base Score",
     multiplier: "Multiplier",
 
+    // Achievements & Analytics
+    achievements_tab: "Accomplishments",
+    trends_tab: "Cognitive Curve",
+    achievements_section_title: "Neural Milestones",
+    achievements_section_desc: "Calibrate milestones across speed feats, movement discipline, and quantum chamber mastery.",
+    filter_all: "All Milestones",
+    filter_unlocked: "Unlocked",
+    filter_locked: "In Progress",
+    milestones_progress_label: "Milestones Conquered",
+    unlocked_status: "Unlocked",
+    in_progress_status: "In Progress",
+    unlocked_at_label: "Unlocked on",
+    achievement_unlocked_toast: "Achievement Unlocked!",
+    total_moves_label: "Total Moves",
+    speed_record_label: "Fastest Chamber",
+    milestone_badge_speed: "Speed Feat",
+    milestone_badge_moves: "Move Discipline",
+    milestone_badge_stars: "Resonance Feat",
+    milestone_badge_mastery: "Mastery Feat",
+
     // Ghost Mode
     ghost_mode: "Ghost Mode",
     ghost_playback: "Ghost Playback",
@@ -164,6 +184,26 @@ export const I18N: Record<SupportedLanguage, Record<string, string>> = {
     speed_bonus: "مكافأة السرعة",
     base_score: "النقاط الأساسية",
     multiplier: "مضاعف النقاط",
+
+    // Achievements & Analytics
+    achievements_tab: "الإنجازات العصبية",
+    trends_tab: "منحنى التطور",
+    achievements_section_title: "الإنجازات والمعالم العصبية",
+    achievements_section_desc: "تتبع إنجازاتك في سرعة الاستجابة، ودقة الحركات، وإتقان حل غرف كرة العقل.",
+    filter_all: "كافة الإنجازات",
+    filter_unlocked: "المكتملة",
+    filter_locked: "قيد الإنجاز",
+    milestones_progress_label: "الإنجازات المكتملة",
+    unlocked_status: "مكتمل",
+    in_progress_status: "قيد الإنجاز",
+    unlocked_at_label: "تاريخ الفتح",
+    achievement_unlocked_toast: "تم فتح إنجاز جديد!",
+    total_moves_label: "إجمالي الحركات",
+    speed_record_label: "أسرع حل",
+    milestone_badge_speed: "رقم قياسي في السرعة",
+    milestone_badge_moves: "انضباط الحركات",
+    milestone_badge_stars: "رنين النجوم",
+    milestone_badge_mastery: "إتقان الغرف",
 
     // Ghost Mode
     ghost_mode: "وضع الشبح",

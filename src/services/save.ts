@@ -1,4 +1,5 @@
 import { SaveData, HistoryRecord, LeaderboardEntry } from '../types/game';
+import { ACHIEVEMENTS, ExtendedAchievementDefinition } from '../data/achievements';
 
 const SAVE_VERSION = 1;
 const STORAGE_KEY = 'mindsphere_save_v1';
@@ -26,6 +27,8 @@ export function getDefaultSaveData(): SaveData {
     ],
     totalStars: 0,
     totalScore: 0,
+    totalMoves: 9,
+    unlockedAchievements: {},
     timestamp: Date.now()
   };
 }
@@ -78,11 +81,57 @@ class SaveManager {
     }
     data.totalStars = stars;
     data.totalScore = score;
+
+    if (!data.unlockedAchievements) {
+      data.unlockedAchievements = {};
+    }
+    if (typeof data.totalMoves !== 'number') {
+      let movesSum = 0;
+      if (data.history) {
+        movesSum = data.history.reduce((acc, h) => acc + (h.moves || 0), 0);
+      }
+      data.totalMoves = Math.max(9, movesSum);
+    }
   }
 
   public isUnlocked(levelId: number): boolean {
     if (levelId === 1) return true;
     return this.data.highestUnlocked >= levelId;
+  }
+
+  public recordMove(): ExtendedAchievementDefinition[] {
+    this.data.totalMoves = (this.data.totalMoves || 0) + 1;
+    const newlyUnlocked = this.checkAndUnlockAchievements();
+    this.save();
+    return newlyUnlocked;
+  }
+
+  public checkAndUnlockAchievements(sessionStats?: {
+    moves?: number;
+    time?: number;
+    levelId?: number;
+    hintsUsed?: number;
+    isTimeAttack?: boolean;
+    score?: number;
+  }): ExtendedAchievementDefinition[] {
+    const newlyUnlocked: ExtendedAchievementDefinition[] = [];
+    if (!this.data.unlockedAchievements) {
+      this.data.unlockedAchievements = {};
+    }
+
+    ACHIEVEMENTS.forEach(ach => {
+      const isAlreadyUnlocked = Boolean(this.data.unlockedAchievements[ach.id]);
+      const progress = ach.calculateProgress(this.data, sessionStats);
+
+      if (progress.isUnlocked && !isAlreadyUnlocked) {
+        this.data.unlockedAchievements[ach.id] = {
+          unlockedAt: Date.now()
+        };
+        newlyUnlocked.push(ach);
+      }
+    });
+
+    return newlyUnlocked;
   }
 
   public recordLevelComplete(
@@ -91,8 +140,9 @@ class SaveManager {
     timeSeconds: number,
     moves: number,
     score: number,
-    ghostRecording?: import('../types/game').GhostRecording
-  ) {
+    ghostRecording?: import('../types/game').GhostRecording,
+    sessionMeta?: { hintsUsed?: number; isTimeAttack?: boolean }
+  ): ExtendedAchievementDefinition[] {
     const prev = this.data.completedLevels[levelId] || { stars: 0, bestTime: 999999, bestMoves: 999999, score: 0 };
 
     const shouldUpdateGhost = !prev.ghostRecording || timeSeconds <= prev.bestTime;
@@ -127,7 +177,17 @@ class SaveManager {
       this.data.highestUnlocked = levelId + 1;
     }
 
+    const newlyUnlocked = this.checkAndUnlockAchievements({
+      moves,
+      time: timeSeconds,
+      levelId,
+      hintsUsed: sessionMeta?.hintsUsed ?? 0,
+      isTimeAttack: sessionMeta?.isTimeAttack ?? false,
+      score
+    });
+
     this.save();
+    return newlyUnlocked;
   }
 
   public getGhostRecording(levelId: number): import('../types/game').GhostRecording | null {
